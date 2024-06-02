@@ -2,14 +2,26 @@ import { useState } from "react";
 import hero from "../../../public/faq/hero.png";
 import bg1 from "../../../public/faq/1.svg";
 import bg2 from "../../../public/faq/2.svg";
-import { FaArrowRight } from "react-icons/fa";
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { accordionData } from "../../constants/Faq";
+
 const Hero = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const toggleAccordion = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
+
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 4;
+
+  const totalPages = Math.ceil(accordionData.length / itemsPerPage);
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentData = accordionData.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
 
   return (
     <section id="hero" className=" pt-40 -mb-40">
@@ -32,7 +44,7 @@ const Hero = () => {
       </div>
       <div className="bg-2 relative flex justify-center items-center w-full h-fit py-10">
         <div className="wrapper justify-center relative z-40 items-center flex flex-col gap-10">
-          {accordionData.map((accordion, index) => (
+          {currentData.map((accordion, index) => (
             <div
               key={index}
               className={`bg-white md:w-[60rem] ${
@@ -58,7 +70,30 @@ const Hero = () => {
               )}
             </div>
           ))}
+
+          <div className="pagination-controls text-white flex justify-center gap-2">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="btn"
+            >
+              <FaArrowLeft />
+            </button>
+            <span>
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              disabled={currentPage === totalPages}
+              className="btn"
+            >
+              <FaArrowRight />
+            </button>
+          </div>
         </div>
+
         <div className="absolute right-0 top-0">
           <img src={bg1} alt="Background" />
         </div>
@@ -66,9 +101,11 @@ const Hero = () => {
           <img src={bg1} alt="Background" />
         </div>
 
-        <div className="flex items-center h-full justify-end">
-          <img src={bg2} alt="Background" className="absolute w-[25rem]" />
-        </div>
+        {currentPage !== 2 && (
+          <div className="flex items-center h-full justify-end">
+            <img src={bg2} alt="Background" className="absolute w-[25rem]" />
+          </div>
+        )}
       </div>
     </section>
   );
