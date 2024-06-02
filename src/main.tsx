@@ -6,6 +6,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import About from "./Pages/About.tsx";
 import Faq from "./Pages/Faq.tsx";
 import Application from "./Pages/Application.tsx";
+import Gallery from "./Pages/Gallery.tsx";
 
 const router = createBrowserRouter([
   {
@@ -23,6 +24,10 @@ const router = createBrowserRouter([
   {
     path: "/application",
     element: <Application />,
+  },
+  {
+    path: "/gallery",
+    element: <Gallery />,
   },
 ]);
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(

@@ -17,3 +17,8 @@ body {
 .flex-col-center {
   @apply flex flex-col justify-center items-center;
 }
+
+swiper .swiper-button-prev,
+.swiper-button-next {
+    color: white;
+}
