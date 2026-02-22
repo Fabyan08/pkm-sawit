@@ -12,9 +12,7 @@ import {
   Target,
   Lightbulb,
   Download,
-  Bell,
-  Search,
-  Menu,
+
   Filter,
   MapPin,
   Zap,
@@ -23,7 +21,6 @@ import {
   X,
   Crown,
   ArrowUpRight,
-  ArrowDownRight,
 } from "lucide-react";
 import {
   BarChart,

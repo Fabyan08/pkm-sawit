@@ -1,27 +1,7 @@
-// import Objectives from "../components/about/Objectives";
-// import Hero from "../components/about/Hero";
-// import Header from "../components/AllPage/Header";
-// import Values from "../components/about/Values";
-// import Footer from "../components/AllPage/Footer";
-// const About = () => {
-//   return (
-//     <>
-//       <Header />
-//       <Hero />
-//       <Objectives />
-//       <Values />
-//       <Footer />
-//     </>
-//   );
-// };
-
-// export default About;
-
 import React, { useState } from "react";
 import {
   BarChart3,
-  Users,
-  Leaf,
+
   TrendingDown,
   TrendingUp,
   Map,
@@ -31,9 +11,7 @@ import {
   Target,
   Lightbulb,
   Download,
-  Bell,
-  Search,
-  Menu,
+
   Filter,
   MapPin,
   Zap,
@@ -231,7 +209,6 @@ const trendData = [
 ];
 
 export default function Perilaku() {
-  const [activeMenu, setActiveMenu] = useState("map"); // Default diset ke halaman Map
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [hoveredRegion, setHoveredRegion] = useState(null);
   const [selectedRegion, setSelectedRegion] = useState(null);

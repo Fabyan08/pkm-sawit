@@ -11,9 +11,7 @@ import {
   Target,
   Lightbulb,
   Download,
-  Bell,
-  Search,
-  Menu,
+
 } from "lucide-react";
 import {
   AreaChart,
