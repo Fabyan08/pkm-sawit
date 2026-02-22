@@ -3,10 +3,9 @@ import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import About from "./Pages/About.tsx";
-import Faq from "./Pages/Faq.tsx";
-import Application from "./Pages/Application.tsx";
-import Gallery from "./Pages/Gallery.tsx";
+import NotFound from "./Pages/NotFound.tsx";
+import Cbi from "./Pages/cbi.tsx";
+import Perilaku from "./Pages/Perilaku.tsx";
 
 const router = createBrowserRouter([
   {
@@ -14,24 +13,21 @@ const router = createBrowserRouter([
     element: <App />,
   },
   {
-    path: "/about",
-    element: <About />,
+    path: "/map",
+    element: <Perilaku />,
+  },
+
+  {
+    path: "/cbi",
+    element: <Cbi />,
   },
   {
-    path: "/faq",
-    element: <Faq />,
-  },
-  {
-    path: "/application",
-    element: <Application />,
-  },
-  {
-    path: "/gallery",
-    element: <Gallery />,
+    path: "*",
+    element: <NotFound />,
   },
 ]);
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <RouterProvider router={router} />
-  </React.StrictMode>
+  </React.StrictMode>,
 );
