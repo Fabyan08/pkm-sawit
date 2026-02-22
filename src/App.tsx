@@ -1,12 +1,5 @@
 import { useState } from "react";
-import {
-  Users,
-  Leaf,
-  TrendingDown,
-  Activity,
-
-
-} from "lucide-react";
+import { Users, Leaf, TrendingDown, Activity } from "lucide-react";
 import {
   AreaChart,
   Area,
@@ -45,8 +38,6 @@ const trendDataBulanan = [
   { name: "Mei", emisi: 98000, target: 110000 },
   { name: "Jun", emisi: 95000, target: 105000 },
 ];
-
-
 
 function App() {
   const [timeFilter, setTimeFilter] = useState("harian");

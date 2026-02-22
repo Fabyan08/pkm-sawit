@@ -69,7 +69,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
     <aside
       className={`bg-white border-r text-nowrap border-slate-200 transition-all duration-300 flex flex-col ${
         isOpen ? "w-64" : "w-20"
-      } hidden md:flex`}
+      } flex md:flex`}
     >
       {/* Logo */}
       <div className="p-6 flex items-center gap-3 border-b border-slate-100">
