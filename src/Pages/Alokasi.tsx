@@ -1052,7 +1052,7 @@ export default function Alokasi() {
                     Proyeksi Kapasitas
                   </p>
                   <p className="text-sm font-black text-slate-800">
-                    2026 - 2030
+                    2026 - 2045
                   </p>
                 </div>
                 <div className="w-3/4 flex items-center justify-between relative">
@@ -1060,7 +1060,7 @@ export default function Alokasi() {
                   <div
                     className={`absolute top-1/2 left-0 h-1 -translate-y-1/2 rounded-full transition-all duration-700 ${data.timelineState === "critical" ? "bg-red-500 w-[50%]" : "bg-emerald-500 w-full"}`}
                   ></div>
-                  {["2026", "2027", "2028", "2029", "2030"].map((year, idx) => (
+                  {["2026", "2027", "2028", "2029", "2030", "2031", "2032", "2033", "2034", "2035", "2036", "2037", "2038", "2039", "2040", "2041", "2042", "2043", "2044", "2045"].map((year, idx) => (
                     <div
                       key={year}
                       className="relative z-10 flex flex-col items-center"

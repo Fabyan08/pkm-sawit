@@ -5,6 +5,10 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import App from "./App";
 import Spasial from "./Pages/spasial";
 import Alokasi from "./Pages/Alokasi";
+import Kebijakan from "./Pages/Kebijakan";
+import Prediksi from "./Pages/Prediksi";
+import Lingkungan from "./Pages/Lingkungan";
+import PalmsphereEnvironmentEngine from "./Pages/tes-lingkungan";
 
 const router = createBrowserRouter([
   {
@@ -18,6 +22,22 @@ const router = createBrowserRouter([
   {
     path: "/alokasi",
     element: <Alokasi />,
+  },
+  {
+    path: "Kebijakan",
+    element: <Kebijakan />,
+  },
+  {
+    path: "/prediksi",
+    element: <Prediksi />,
+  },
+  {
+    path: "/lingkungan",
+    element: <Lingkungan />,
+  },
+  {
+    path: "lingkungan2",
+    element: <PalmsphereEnvironmentEngine />,
   }
 ]);
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(

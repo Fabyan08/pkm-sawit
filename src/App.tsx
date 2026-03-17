@@ -140,6 +140,111 @@ export default function App() {
       cons: 17.5,
       bio: biodieselVol + (mandate > 40 ? 4 : 2),
     },
+    {
+      year: "2031",
+      baselineProd: 53.0,
+      prod: currentProd + 6.5 + replanting * 0.8,
+      cons: 18.0,
+      bio: biodieselVol + (mandate > 40 ? 5 : 2.5),
+    },
+    {
+      year: "2032",
+      baselineProd: 54.0,
+      prod: currentProd + 8.0 + replanting,
+      cons: 18.5,
+      bio: biodieselVol + (mandate > 40 ? 6 : 3),
+    },
+        {
+      year: "2033",
+      baselineProd: 55.2,
+      prod: currentProd + 9.5 + replanting * 1.2,
+      cons: 19.0,
+      bio: biodieselVol + (mandate > 40 ? 7 : 3.5),
+    },
+    {
+      year: "2034",
+      baselineProd: 56.3,
+      prod: currentProd + 11.0 + replanting * 1.4,
+      cons: 19.5,
+      bio: biodieselVol + (mandate > 40 ? 8 : 4),
+    },
+    {
+      year: "2035",
+      baselineProd: 57.5,
+      prod: currentProd + 12.5 + replanting * 1.6,
+      cons: 20.0,
+      bio: biodieselVol + (mandate > 40 ? 9 : 4.5),
+    },
+    {
+      year: "2036",
+      baselineProd: 58.8,
+      prod: currentProd + 14.0 + replanting * 1.8,
+      cons: 20.6,
+      bio: biodieselVol + (mandate > 40 ? 10 : 5),
+    },
+    {
+      year: "2037",
+      baselineProd: 60.0,
+      prod: currentProd + 15.5 + replanting * 2.0,
+      cons: 21.2,
+      bio: biodieselVol + (mandate > 40 ? 11 : 5.5),
+    },
+    {
+      year: "2038",
+      baselineProd: 61.3,
+      prod: currentProd + 17.0 + replanting * 2.2,
+      cons: 21.8,
+      bio: biodieselVol + (mandate > 40 ? 12 : 6),
+    },
+    {
+      year: "2039",
+      baselineProd: 62.7,
+      prod: currentProd + 18.5 + replanting * 2.4,
+      cons: 22.4,
+      bio: biodieselVol + (mandate > 40 ? 13 : 6.5),
+    },
+    {
+      year: "2040",
+      baselineProd: 64.0,
+      prod: currentProd + 20.0 + replanting * 2.6,
+      cons: 23.0,
+      bio: biodieselVol + (mandate > 40 ? 14 : 7),
+    },
+    {
+      year: "2041",
+      baselineProd: 65.5,
+      prod: currentProd + 21.5 + replanting * 2.8,
+      cons: 23.7,
+      bio: biodieselVol + (mandate > 40 ? 15 : 7.5),
+    },
+    {
+      year: "2042",
+      baselineProd: 67.0,
+      prod: currentProd + 23.0 + replanting * 3.0,
+      cons: 24.4,
+      bio: biodieselVol + (mandate > 40 ? 16 : 8),
+    },
+    {
+      year: "2043",
+      baselineProd: 68.5,
+      prod: currentProd + 24.5 + replanting * 3.2,
+      cons: 25.1,
+      bio: biodieselVol + (mandate > 40 ? 17 : 8.5),
+    },
+    {
+      year: "2044",
+      baselineProd: 70.0,
+      prod: currentProd + 26.0 + replanting * 3.5,
+      cons: 25.8,
+      bio: biodieselVol + (mandate > 40 ? 18 : 9),
+    },
+    {
+      year: "2045",
+      baselineProd: 72.0,
+      prod: currentProd + 28.0 + replanting * 4.0,
+      cons: 26.5,
+      bio: biodieselVol + (mandate > 40 ? 20 : 10),
+    }
   ];
 
   return (
@@ -587,7 +692,7 @@ export default function App() {
               <div className="flex items-center space-x-2 mb-2">
                 <ChartIcon className="w-5 h-5 text-indigo-600" />
                 <h3 className="text-lg font-bold text-slate-800">
-                  Forecast Digital Twin 2030
+                  Forecast Digital Twin 2045
                 </h3>
               </div>
               <p className="text-xs text-slate-500 mb-4">

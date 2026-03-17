@@ -55,14 +55,14 @@ export default function Sidebar() {
         <NavItem to="/" icon={<LayoutDashboard />} label="Ringkasan Nasional" />
         <NavItem to="/spasial" icon={<MapIcon />} label="Analisis Spasial" />
         <NavItem to="/alokasi" icon={<GitMerge />} label="Alokasi & Logistik" />
-        <NavItem to="/simulasi" icon={<Sliders />} label="Simulasi Kebijakan" />
+        <NavItem to="/kebijakan" icon={<Sliders />} label="Simulasi Kebijakan" />
         <NavItem
           to="/prediksi"
           icon={<ChartIcon />}
           label="Prediksi & Proyeksi"
         />
         <NavItem
-          to="/monitoring"
+          to="/lingkungan"
           icon={<ShieldAlert />}
           label="Pemantauan Lingkungan"
         />
