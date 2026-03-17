@@ -13,7 +13,7 @@ const COLORS = {
   danger: "#EF4444", // Merah Risiko
 };
 
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Activity,
   Globe,
@@ -21,20 +21,15 @@ import {
   PackageOpen,
   AlertTriangle,
   TrendingUp,
-  TrendingDown,
   Cpu,
   ShieldCheck,
   LineChart,
-  ArrowRight,
-  CheckCircle2,
   Factory,
   CalendarDays,
-  Radar,
   Truck,
   Lock,
   Flame,
   AlertCircle,
-  PlayCircle,
 } from "lucide-react";
 
 // Mencegah ReferenceError: tailwind is not defined
@@ -81,14 +76,25 @@ const PRESETS = {
   },
 };
 
-const formatNum = (num) => Number(num).toFixed(1);
+const formatNum = (num: number): string => Number(num).toFixed(1);
 
 // --- COMPONENT: MINI SPARKLINE ---
-const Sparkline = ({ data, color, reverse = false }) => {
+type SparklineProps = {
+  data: number[];
+  color?: "red" | "emerald" | "amber" | "blue";
+  reverse?: boolean;
+};
+
+// type SparklineProps = {
+//   data: number[];
+//   color?: "red" | "emerald" | "amber" | "blue";
+// };
+
+const Sparkline = ({ data, color = "blue" }: SparklineProps) => {
   const max = Math.max(...data) * 1.1;
   const min = 0;
   const points = data
-    .map((val, i) => {
+    .map((val: number, i: number) => {
       const x = (i / (data.length - 1)) * 100;
       const y = 30 - ((val - min) / (max - min)) * 30;
       return `${x},${y}`;
@@ -147,12 +153,22 @@ export default function Prediksi() {
     }
   }, []);
 
-  const [mode, setMode] = useState("baseline");
-  const [hoveredYear, setHoveredYear] = useState(null);
+  type Mode = keyof typeof PRESETS;
+  const [mode, setMode] = useState<Mode>("baseline");
+  const [hoveredYear, setHoveredYear] = useState<number | null>(null);
   const controls = PRESETS[mode];
 
   // --- FORECAST ENGINE (MATH MODEL 2025 - 2045) ---
-  const projections = useMemo(() => {
+  type Projection = {
+    year: number;
+    produksi: number;
+    pangan: number;
+    energi: number;
+    ekspor: number;
+    totalDemand: number;
+    gap: number;
+  };
+  const projections: Projection[] = useMemo(() => {
     return YEARS.map((year) => {
       const t = year - 2025;
 
@@ -165,8 +181,7 @@ export default function Prediksi() {
       const energi =
         BASELINE_2025.energi * energiMultiplier * Math.pow(1 + 0.02, t);
 
-      let ekspor = BASELINE_2025.ekspor * Math.pow(1 + 0.01, t);
-
+      const ekspor = BASELINE_2025.ekspor * Math.pow(1 + 0.01, t);
       const totalDemand = pangan + energi + ekspor;
       const gap = produksi - totalDemand;
 
@@ -202,7 +217,9 @@ export default function Prediksi() {
   );
   const gapTrend = projections.map((p) => p.gap);
 
-  const generatePath = (dataKey, maxValue) => {
+  type ProjectionKey = "produksi" | "pangan" | "energi" | "ekspor";
+
+  const generatePath = (dataKey: ProjectionKey, maxValue: number): string => {
     const width = 800;
     const height = 240;
     const xStep = width / (YEARS.length - 1);
@@ -232,25 +249,9 @@ export default function Prediksi() {
           {/* HEADER & SCENARIO SELECTOR */}
           {/* ========================================================= */}
           <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-white p-5 rounded-2xl shadow-sm border border-blue-100">
-            <div>
-              <div className="flex items-center gap-3 mb-1">
-                <div className="w-10 h-10 rounded-xl bg-blue-900 flex items-center justify-center shadow-lg shadow-blue-900/20">
-                  <Radar size={20} className="text-white" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-black text-blue-950 tracking-tight">
-                    PALMSPHERE
-                  </h1>
-                  <p className="text-blue-600 text-xs font-bold tracking-widest uppercase">
-                    Forecast & Projection Engine 2045
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center gap-4 bg-blue-50/50 p-2 rounded-xl border border-blue-100 w-full xl:w-auto">
+            <div className="flex flex-col sm:flex-row items-center gap-4 bg-blue-50/50 p-2 rounded-xl border border-blue-100 w-full ">
               <div className="flex p-1 bg-white rounded-lg shadow-sm border border-blue-100 w-full overflow-x-auto scrollbar-hide">
-                {Object.keys(PRESETS).map((m) => (
+                {(Object.keys(PRESETS) as Mode[]).map((m) => (
                   <button
                     key={m}
                     onClick={() => setMode(m)}
@@ -267,11 +268,11 @@ export default function Prediksi() {
                 ))}
               </div>
               <div className="flex items-center gap-3 px-4 w-full sm:w-auto">
-                <div className="flex flex-col">
+                <div className="flex items-center ">
                   <span className="text-[10px] text-blue-500 font-bold uppercase">
                     Target Waktu
                   </span>
-                  <span className="text-sm font-black text-blue-900 flex items-center gap-1">
+                  <span className="text-sm font-black text-blue-900 flex flex-row text-nowrap items-center gap-1">
                     <CalendarDays size={14} /> 2025 &rarr; 2045
                   </span>
                 </div>
@@ -585,7 +586,7 @@ export default function Prediksi() {
                       {(() => {
                         const d = projections.find(
                           (p) => p.year === hoveredYear,
-                        );
+                        )!;
                         return (
                           <div className="space-y-1">
                             <div className="flex justify-between text-[10px] font-bold">
@@ -638,7 +639,7 @@ export default function Prediksi() {
                       },
                       { yr: 2040, desc: "Ketergantungan impor meningkat" },
                       { yr: 2045, desc: "Ketahanan pangan sawit kritis" },
-                    ].map((item, idx) => (
+                    ].map((item) => (
                       <div
                         key={item.yr}
                         className="relative z-10 flex flex-col items-center text-center group"
@@ -842,13 +843,13 @@ export default function Prediksi() {
                   </div>
 
                   {/* TRANSITION TO SIMULATION BUTTON */}
-                  <button className="w-full mt-5 py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white text-[11px] font-black rounded-xl transition-all flex justify-center items-center gap-2 uppercase tracking-widest shadow-lg shadow-emerald-500/30 active:scale-95 group">
+                  {/* <button className="w-full mt-5 py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white text-[11px] font-black rounded-xl transition-all flex justify-center items-center gap-2 uppercase tracking-widest shadow-lg shadow-emerald-500/30 active:scale-95 group">
                     <PlayCircle
                       size={16}
                       className="group-hover:animate-pulse"
                     />
                     Uji Skenario Kebijakan
-                  </button>
+                  </button> */}
                 </div>
               </div>
             </div>

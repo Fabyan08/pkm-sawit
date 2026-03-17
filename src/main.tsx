@@ -8,7 +8,7 @@ import Alokasi from "./Pages/Alokasi";
 import Kebijakan from "./Pages/Kebijakan";
 import Prediksi from "./Pages/Prediksi";
 import Lingkungan from "./Pages/Lingkungan";
-import PalmsphereEnvironmentEngine from "./Pages/tes-lingkungan";
+import Laporan from "./Pages/Laporan";
 
 const router = createBrowserRouter([
   {
@@ -36,9 +36,9 @@ const router = createBrowserRouter([
     element: <Lingkungan />,
   },
   {
-    path: "lingkungan2",
-    element: <PalmsphereEnvironmentEngine />,
-  }
+    path: "/laporan",
+    element: <Laporan />,
+  },
 ]);
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>

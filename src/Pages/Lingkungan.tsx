@@ -1,6 +1,12 @@
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
+import type { LucideIcon } from "lucide-react";
 
+type LayerOption = {
+  id: LayerType;
+  label: string;
+  icon: LucideIcon;
+};
 // --- KONFIGURASI WARNA ---
 const COLORS = {
   primary: "#1F7A63", // Hijau Produksi
@@ -13,19 +19,14 @@ const COLORS = {
   danger: "#EF4444", // Merah Risiko
 };
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
-  Leaf,
   AlertTriangle,
   Wind,
-  Droplets,
   Map,
-  MapPin,
-  Activity,
   CheckCircle2,
   TrendingUp,
   TrendingDown,
-  Target,
   ShieldAlert,
   ArrowRight,
   Layers,
@@ -34,6 +35,7 @@ import {
   Factory,
   ShieldCheck,
   ThermometerSun,
+  MousePointer2,
 } from "lucide-react";
 
 // Mencegah ReferenceError: tailwind is not defined
@@ -55,7 +57,18 @@ const KPI_DATA = {
   },
 };
 
-const REGIONS = [
+type Region = {
+  id: string;
+  name: string;
+  coords: [number, number];
+  deforest: number;
+  emission: number;
+  prod: number;
+  konsv: number;
+  status: "danger" | "warning" | "safe";
+};
+
+const REGIONS: Region[] = [
   {
     id: "kalbar",
     name: "Kalimantan",
@@ -98,6 +111,7 @@ const REGIONS = [
   },
 ];
 
+const SPARKLINE_YEARS = [2021, 2022, 2023, 2024, 2025];
 const SPARKLINE_DATA = {
   deforest: [60, 65, 68, 70, 72],
   landuse: [90, 100, 110, 115, 120],
@@ -105,16 +119,43 @@ const SPARKLINE_DATA = {
   biodiversity: [40, 45, 55, 65, 80],
 };
 
-// --- HELPER COMPONENTS ---
-const Sparkline = ({ data, color }) => {
+const DEFORESTATION_HISTORY = [
+  { yr: 2020, kal: 45, sum: 30, pap: 10, total: 85 },
+  { yr: 2021, kal: 50, sum: 30, pap: 12, total: 92 },
+  { yr: 2022, kal: 58, sum: 29, pap: 15, total: 102 },
+  { yr: 2023, kal: 65, sum: 28, pap: 18, total: 111 },
+  { yr: 2024, kal: 72, sum: 28, pap: 22, total: 122 },
+  { yr: 2025, kal: 80, sum: 27, pap: 28, total: 135 },
+];
+
+const EMISSION_PROJECTION = [
+  { yr: 2025, base: 320, policy: 320 },
+  { yr: 2030, base: 360, policy: 290 },
+  { yr: 2035, base: 410, policy: 240 },
+  { yr: 2040, base: 470, policy: 180 },
+  { yr: 2045, base: 530, policy: 120 },
+];
+
+// --- HELPER COMPONENTS: INTERACTIVE SPARKLINE ---
+type SparklineProps = {
+  data: number[];
+  color: "red" | "emerald" | "amber";
+  unit: string;
+};
+
+const InteractiveSparkline = ({ data, color, unit }: SparklineProps) => {
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
   const max = Math.max(...data) * 1.1;
   const min = Math.min(...data) * 0.9;
-  const points = data
-    .map((val, i) => {
-      const x = (i / (data.length - 1)) * 100;
-      const y = 30 - ((val - min) / (max - min)) * 30;
-      return `${x},${y}`;
-    })
+
+  const points = data.map((val: number, i: number) => {
+    const x = (i / (data.length - 1)) * 100;
+    const y = 30 - ((val - min) / (max - min)) * 30;
+    return { x, y, val, year: SPARKLINE_YEARS[i] };
+  });
+
+  const pathString = points
+    .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
     .join(" ");
 
   const strokeColor =
@@ -124,31 +165,73 @@ const Sparkline = ({ data, color }) => {
 
   return (
     <div
-      className="w-full h-8 relative mt-1 rounded overflow-hidden"
+      className="w-full h-10 relative mt-2 rounded overflow-visible group"
       style={{ backgroundColor: bgColor }}
     >
       <svg
         viewBox="0 0 100 30"
-        className="absolute inset-0 w-full h-full preserve-aspect-ratio-none"
+        className="absolute inset-0 w-full h-full preserve-aspect-ratio-none overflow-visible"
       >
-        <polyline
-          points={points}
+        <path
+          d={pathString}
           fill="none"
           stroke={strokeColor}
-          strokeWidth="2"
+          strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
+        {/* Draw interactive points */}
+        {points.map((p, i) => (
+          <circle
+            key={i}
+            cx={p.x}
+            cy={p.y}
+            r={hoverIdx === i ? "4" : "2"}
+            fill={hoverIdx === i ? strokeColor : "white"}
+            stroke={strokeColor}
+            strokeWidth="1.5"
+            className="transition-all duration-200"
+          />
+        ))}
       </svg>
+
+      {/* Invisible Hover Zones */}
+      <div className="absolute inset-0 flex z-10">
+        {points.map((_p, i) => (
+          <div
+            key={i}
+            className="flex-1 cursor-pointer"
+            onMouseEnter={() => setHoverIdx(i)}
+            onMouseLeave={() => setHoverIdx(null)}
+          ></div>
+        ))}
+      </div>
+
+      {/* Tooltip */}
+      {hoverIdx !== null && (
+        <div
+          className="absolute -top-8 bg-slate-800 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg pointer-events-none z-20 whitespace-nowrap transform -translate-x-1/2"
+          style={{ left: `${points[hoverIdx].x}%` }}
+        >
+          {points[hoverIdx].year}:{" "}
+          <span style={{ color: strokeColor }}>
+            {points[hoverIdx].val} {unit}
+          </span>
+        </div>
+      )}
     </div>
   );
 };
 
 // --- LEAFLET MAP COMPONENT ---
-const LeafletEnvMap = ({ activeLayer }) => {
-  const mapRef = useRef(null);
-  const mapInstance = useRef(null);
-  const layerGroup = useRef(null);
+type LayerType = "deforest" | "emission" | "konservasi" | "produksi";
+import type { Map as LeafletMap, LayerGroup } from "leaflet";
+
+const LeafletEnvMap = ({ activeLayer }: { activeLayer: LayerType }) => {
+  const mapRef = useRef<HTMLDivElement | null>(null);
+
+  const mapInstance = useRef<LeafletMap | null>(null);
+  const layerGroup = useRef<LayerGroup | null>(null);
 
   useEffect(() => {
     if (
@@ -175,7 +258,6 @@ const LeafletEnvMap = ({ activeLayer }) => {
         attributionControl: false,
       }).setView([-2.0, 118], 5);
 
-      // Menggunakan basemap satelit/terrain yang dimute agar kesan environment kuat
       window.L.tileLayer(
         "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
         {
@@ -255,7 +337,7 @@ const LeafletEnvMap = ({ activeLayer }) => {
       });
 
       const marker = window.L.marker(reg.coords, { icon }).addTo(
-        layerGroup.current,
+        layerGroup.current!,
       );
       marker.bindTooltip(
         `
@@ -275,8 +357,14 @@ const LeafletEnvMap = ({ activeLayer }) => {
 
   return <div ref={mapRef} className="absolute inset-0 z-0"></div>;
 };
+// type Emission = {
+//   yr: number;
+//   base: number;
+//   policy: number;
+// };
 
 export default function Lingkungan() {
+  // Inject Tailwind CDN safely
   // Inject Tailwind CDN safely
   useEffect(() => {
     if (
@@ -290,8 +378,35 @@ export default function Lingkungan() {
     }
   }, []);
 
-  const [activeLayer, setActiveLayer] = useState("deforest"); // deforest, emission, konservasi, produksi
+  type LayerType = "deforest" | "emission" | "konservasi" | "produksi";
+
+  const [activeLayer, setActiveLayer] = useState<LayerType>("deforest");
   const [filterYear, setFilterYear] = useState("2025");
+  const [hoveredEmissionIdx, setHoveredEmissionIdx] = useState<number | null>(
+    null,
+  );
+
+  // Chart Generators untuk Line Chart (MtCO2)
+  const maxEmissionY = 600;
+  type EmissionKey = "base" | "policy";
+
+  const generateEmissionPoints = (key: EmissionKey) => {
+    return EMISSION_PROJECTION.map((d, i) => {
+      const x = i * (100 / (EMISSION_PROJECTION.length - 1));
+      const y = 100 - (d[key] / maxEmissionY) * 100;
+      return { x, y, val: d[key], yr: d.yr };
+    });
+  };
+
+  const basePoints = generateEmissionPoints("base");
+  const policyPoints = generateEmissionPoints("policy");
+  const basePath = basePoints
+    .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
+    .join(" ");
+  const policyPath = policyPoints
+    .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
+    .join(" ");
+
   return (
     <div
       className="flex h-screen overflow-hidden font-sans"
@@ -343,11 +458,11 @@ export default function Lingkungan() {
               <select
                 value={filterYear}
                 onChange={(e) => setFilterYear(e.target.value)}
-                className="bg-slate-100 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500"
+                className="bg-slate-100 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer hover:bg-slate-200"
               >
                 <option value="2020">Data Historis 2020</option>
                 <option value="2025">Live Status 2025</option>
-                <option value="2030">Proyeksi 2030</option>
+                <option value="2045">Proyeksi 2045</option>
               </select>
             </div>
           </header>
@@ -356,8 +471,8 @@ export default function Lingkungan() {
           {/* SECTION 1: ENVIRONMENTAL STATUS SUMMARY (KPI) */}
           {/* ========================================================= */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-red-100 flex justify-between items-center relative overflow-hidden">
-              <div className="absolute -right-4 -bottom-4 opacity-5">
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-red-100 flex justify-between items-center relative overflow-hidden group">
+              <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform">
                 <AlertTriangle size={80} />
               </div>
               <div>
@@ -376,8 +491,8 @@ export default function Lingkungan() {
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-amber-100 flex justify-between items-center relative overflow-hidden">
-              <div className="absolute -right-4 -bottom-4 opacity-5">
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-amber-100 flex justify-between items-center relative overflow-hidden group">
+              <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform">
                 <Map size={80} />
               </div>
               <div>
@@ -396,8 +511,8 @@ export default function Lingkungan() {
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-purple-100 flex justify-between items-center relative overflow-hidden">
-              <div className="absolute -right-4 -bottom-4 opacity-5">
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-purple-100 flex justify-between items-center relative overflow-hidden group">
+              <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform">
                 <Factory size={80} />
               </div>
               <div>
@@ -416,8 +531,8 @@ export default function Lingkungan() {
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-emerald-100 flex justify-between items-center relative overflow-hidden">
-              <div className="absolute -right-4 -bottom-4 opacity-5">
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-emerald-100 flex justify-between items-center relative overflow-hidden group">
+              <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform">
                 <ShieldCheck size={80} />
               </div>
               <div>
@@ -450,25 +565,27 @@ export default function Lingkungan() {
                     <Radar size={18} className="text-emerald-600" /> Geospatial
                     Risk Map
                   </h2>
-                  <div className="flex bg-slate-100 p-1 rounded-lg">
-                    {[
-                      {
-                        id: "deforest",
-                        label: "Deforestasi",
-                        icon: AlertTriangle,
-                      },
-                      { id: "emission", label: "Emisi", icon: Wind },
-                      {
-                        id: "konservasi",
-                        label: "Area Konservasi",
-                        icon: ShieldCheck,
-                      },
-                      {
-                        id: "produksi",
-                        label: "Zonasi Produksi",
-                        icon: Factory,
-                      },
-                    ].map((t) => (
+                  <div className="flex flex-wrap bg-slate-100 p-1 rounded-lg">
+                    {(
+                      [
+                        {
+                          id: "deforest",
+                          label: "Deforestasi",
+                          icon: AlertTriangle,
+                        },
+                        { id: "emission", label: "Emisi", icon: Wind },
+                        {
+                          id: "konservasi",
+                          label: "Area Konservasi",
+                          icon: ShieldCheck,
+                        },
+                        {
+                          id: "produksi",
+                          label: "Zonasi Produksi",
+                          icon: Factory,
+                        },
+                      ] as LayerOption[]
+                    ).map((t) => (
                       <button
                         key={t.id}
                         onClick={() => setActiveLayer(t.id)}
@@ -485,13 +602,13 @@ export default function Lingkungan() {
                 </div>
 
                 {/* Leaflet Container */}
-                <div className="flex-1 relative w-full h-full bg-slate-100">
+                <div className="flex-1 relative w-full h-full bg-slate-100 min-h-[350px]">
                   <LeafletEnvMap activeLayer={activeLayer} />
 
                   {/* Map Legend Floating */}
                   <div className="absolute bottom-4 left-4 z-[400] bg-white/90 backdrop-blur p-3 rounded-xl shadow-lg border border-slate-100">
-                    <p className="text-[9px] font-bold text-slate-500 uppercase mb-2">
-                      Tingkat Risiko
+                    <p className="text-[9px] font-bold text-slate-500 uppercase mb-2 flex items-center gap-1">
+                      <MousePointer2 size={10} /> Klik Area untuk Detail
                     </p>
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-2">
@@ -517,7 +634,7 @@ export default function Lingkungan() {
                 </div>
               </div>
 
-              {/* SECTION 3: ENVIRONMENTAL INDICATORS */}
+              {/* SECTION 3: ENVIRONMENTAL INDICATORS (INTERACTIVE) */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
                   <div className="flex justify-between items-center mb-1">
@@ -528,8 +645,12 @@ export default function Lingkungan() {
                       72/100
                     </span>
                   </div>
-                  <Sparkline data={SPARKLINE_DATA.deforest} color="red" />
-                  <p className="text-[9px] text-red-500 font-bold mt-1 text-right">
+                  <InteractiveSparkline
+                    data={SPARKLINE_DATA.deforest}
+                    color="red"
+                    unit="Idx"
+                  />
+                  <p className="text-[9px] text-red-500 font-bold mt-2 text-right">
                     &uarr; Meningkat
                   </p>
                 </div>
@@ -542,8 +663,12 @@ export default function Lingkungan() {
                       +120k ha
                     </span>
                   </div>
-                  <Sparkline data={SPARKLINE_DATA.landuse} color="amber" />
-                  <p className="text-[9px] text-amber-500 font-bold mt-1 text-right">
+                  <InteractiveSparkline
+                    data={SPARKLINE_DATA.landuse}
+                    color="amber"
+                    unit="k Ha"
+                  />
+                  <p className="text-[9px] text-amber-500 font-bold mt-2 text-right">
                     &uarr; Ekspansi
                   </p>
                 </div>
@@ -556,8 +681,12 @@ export default function Lingkungan() {
                       320 Mt
                     </span>
                   </div>
-                  <Sparkline data={SPARKLINE_DATA.carbon} color="amber" />
-                  <p className="text-[9px] text-purple-500 font-bold mt-1 text-right">
+                  <InteractiveSparkline
+                    data={SPARKLINE_DATA.carbon}
+                    color="amber"
+                    unit="Mt"
+                  />
+                  <p className="text-[9px] text-purple-500 font-bold mt-2 text-right">
                     &uarr; Naik
                   </p>
                 </div>
@@ -570,8 +699,12 @@ export default function Lingkungan() {
                       TINGGI
                     </span>
                   </div>
-                  <Sparkline data={SPARKLINE_DATA.biodiversity} color="red" />
-                  <p className="text-[9px] text-red-500 font-bold mt-1 text-right">
+                  <InteractiveSparkline
+                    data={SPARKLINE_DATA.biodiversity}
+                    color="red"
+                    unit="Risiko"
+                  />
+                  <p className="text-[9px] text-red-500 font-bold mt-2 text-right">
                     Habitat Terancam
                   </p>
                 </div>
@@ -579,103 +712,295 @@ export default function Lingkungan() {
             </div>
 
             {/* ========================================================= */}
-            {/* RIGHT COLUMN: CHARTS, COMPLIANCE, & ALERTS */}
+            {/* RIGHT COLUMN: REAL DATA CHARTS, COMPLIANCE, & ALERTS */}
             {/* ========================================================= */}
             <div className="flex flex-col gap-4">
-              {/* SECTION 4: DEFORESTATION ANALYSIS */}
-              <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                <h2 className="text-xs font-black text-emerald-950 uppercase tracking-widest flex items-center gap-2 mb-4">
-                  <Layers size={14} className="text-amber-500" /> Analisis Land
-                  Use & Deforestasi
-                </h2>
-                <div className="h-32 w-full relative mb-2">
-                  {/* Simple Custom Stacked Bar Chart for Regions */}
-                  <div className="absolute inset-0 flex items-end justify-between px-2 gap-2">
-                    {[2020, 2021, 2022, 2023, 2024, 2025].map((yr, i) => {
-                      const hKal = 40 + i * 5; // Kalimantan naik
-                      const hSum = 30; // Sumatera stabil
-                      const hPap = 10 + i * 3; // Papua mulai naik
+              {/* SECTION 4: REAL DEFORESTATION ANALYSIS (INTERACTIVE BAR CHART) */}
+              <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col">
+                <div className="flex justify-between items-center mb-2">
+                  <h2 className="text-xs font-black text-emerald-950 uppercase tracking-widest flex items-center gap-2">
+                    <Layers size={14} className="text-amber-500" /> Land Use &
+                    Deforestasi
+                  </h2>
+                  <span className="text-[9px] text-slate-400 font-bold flex items-center gap-1">
+                    <MousePointer2 size={10} /> Arahkan kursor
+                  </span>
+                </div>
+
+                <div className="flex h-48 w-full items-end gap-3 relative mt-4">
+                  {/* Y Axis Guide (Samping Kiri) */}
+                  <div className="absolute -left-2 top-0 bottom-6 flex flex-col justify-between text-[9px] font-bold text-slate-400 py-1 opacity-70">
+                    <span>150k</span>
+                    <span>100k</span>
+                    <span>50k</span>
+                    <span>0</span>
+                  </div>
+
+                  {/* Grid Horizontal */}
+                  <div className="absolute inset-0 left-6 right-2 bottom-6 flex flex-col justify-between pointer-events-none z-0">
+                    <div className="border-t border-slate-100 border-dashed w-full"></div>
+                    <div className="border-t border-slate-100 border-dashed w-full"></div>
+                    <div className="border-t border-slate-100 border-dashed w-full"></div>
+                    <div className="border-t border-slate-300 w-full"></div>
+                  </div>
+
+                  {/* Data Bars */}
+                  <div className="flex w-full h-full pb-6 pl-8 z-10">
+                    {DEFORESTATION_HISTORY.map((d) => {
+                      const maxVal = 150;
+                      const hTotal = (d.total / maxVal) * 100;
+                      const pPap = (d.pap / d.total) * 100;
+                      const pSum = (d.sum / d.total) * 100;
+                      const pKal = (d.kal / d.total) * 100;
+
                       return (
                         <div
-                          key={yr}
-                          className="flex-1 flex flex-col justify-end items-center group relative"
+                          key={d.yr}
+                          className="flex-1 flex flex-col justify-end items-center group relative px-1 h-full cursor-pointer"
                         >
-                          {/* Tooltip */}
-                          <div className="opacity-0 group-hover:opacity-100 absolute -top-10 bg-slate-800 text-white text-[9px] p-1 rounded z-10 whitespace-nowrap pointer-events-none transition-opacity">
-                            Kal: {hKal} | Sum: {hSum} | Pap: {hPap}
+                          {/* Interactive Tooltip (Pop out nicely) */}
+                          <div className="opacity-0 group-hover:opacity-100 absolute bottom-full mb-2 bg-slate-800 text-white text-[10px] p-2.5 rounded-lg shadow-xl z-50 min-w-[110px] pointer-events-none transition-all transform scale-95 group-hover:scale-100">
+                            <div className="font-black border-b border-slate-600 pb-1 mb-1 text-center">
+                              Tahun {d.yr}
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-red-400">Kalimantan:</span>{" "}
+                              <b>{d.kal}k ha</b>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-amber-400">Sumatera:</span>{" "}
+                              <b>{d.sum}k ha</b>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-red-300">Papua:</span>{" "}
+                              <b>{d.pap}k ha</b>
+                            </div>
+                            <div className="flex justify-between mt-1 pt-1 border-t border-slate-600">
+                              <span className="text-emerald-400">Total:</span>{" "}
+                              <b>{d.total}k ha</b>
+                            </div>
+                            {/* Tooltip Arrow */}
+                            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-slate-800 rotate-45"></div>
                           </div>
+
+                          {/* Label Total Di Atas Bar */}
+                          <span className="text-[10px] font-black text-slate-700 mb-1 group-hover:text-emerald-600 transition-colors">
+                            {d.total}k
+                          </span>
+
+                          {/* The Stacked Bar */}
                           <div
-                            className="w-full bg-red-400 rounded-t-sm transition-all"
-                            style={{ height: `${hPap}%` }}
-                          ></div>
-                          <div
-                            className="w-full bg-amber-400 transition-all"
-                            style={{ height: `${hSum}%` }}
-                          ></div>
-                          <div
-                            className="w-full bg-red-600 rounded-b-sm transition-all"
-                            style={{ height: `${hKal}%` }}
-                          ></div>
-                          <span className="text-[8px] font-bold text-slate-400 mt-1">
-                            {yr}
+                            className="w-full flex flex-col shadow-sm rounded-t-md overflow-hidden group-hover:ring-2 ring-emerald-400 transition-all"
+                            style={{ height: `${hTotal}%` }}
+                          >
+                            <div
+                              className="w-full bg-red-400 group-hover:brightness-110"
+                              style={{ height: `${pPap}%` }}
+                            ></div>
+                            <div
+                              className="w-full bg-amber-400 group-hover:brightness-110"
+                              style={{ height: `${pSum}%` }}
+                            ></div>
+                            <div
+                              className="w-full bg-red-600 group-hover:brightness-110"
+                              style={{ height: `${pKal}%` }}
+                            ></div>
+                          </div>
+
+                          {/* Label X-Axis */}
+                          <span className="text-[10px] font-bold text-slate-500 mt-2 absolute -bottom-6 group-hover:text-slate-800">
+                            {d.yr}
                           </span>
                         </div>
                       );
                     })}
                   </div>
                 </div>
-                <div className="flex gap-3 text-[9px] font-bold justify-center mt-2">
-                  <span className="flex items-center gap-1 text-slate-600">
-                    <div className="w-2 h-2 bg-red-600 rounded-sm"></div>{" "}
-                    Kalimantan (Tinggi)
+
+                {/* Legend Sektor Deforestasi */}
+                <div className="flex gap-4 text-[10px] font-bold justify-center mt-3 pt-3 border-t border-slate-100">
+                  <span className="flex items-center gap-1.5 text-slate-600">
+                    <div className="w-2.5 h-2.5 bg-red-600 rounded-[2px]"></div>{" "}
+                    Kalimantan
                   </span>
-                  <span className="flex items-center gap-1 text-slate-600">
-                    <div className="w-2 h-2 bg-amber-400 rounded-sm"></div>{" "}
-                    Sumatera (Stabil)
+                  <span className="flex items-center gap-1.5 text-slate-600">
+                    <div className="w-2.5 h-2.5 bg-amber-400 rounded-[2px]"></div>{" "}
+                    Sumatera
                   </span>
-                  <span className="flex items-center gap-1 text-slate-600">
-                    <div className="w-2 h-2 bg-red-400 rounded-sm"></div> Papua
-                    (Naik)
+                  <span className="flex items-center gap-1.5 text-slate-600">
+                    <div className="w-2.5 h-2.5 bg-red-400 rounded-[2px]"></div>{" "}
+                    Papua
                   </span>
                 </div>
               </div>
 
-              {/* SECTION 5: EMISSION IMPACT */}
+              {/* SECTION 5: REAL EMISSION IMPACT (INTERACTIVE LINE CHART) */}
               <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                <h2 className="text-xs font-black text-emerald-950 uppercase tracking-widest flex items-center gap-2 mb-4">
-                  <ThermometerSun size={14} className="text-purple-500" />{" "}
-                  Proyeksi Emisi Karbon
-                </h2>
-                <div className="h-24 w-full relative">
-                  <svg
-                    viewBox="0 0 100 40"
-                    className="w-full h-full preserve-aspect-ratio-none"
-                  >
-                    {/* Baseline: Emisi Naik */}
-                    <path
-                      d="M 0 35 Q 30 30 50 20 T 100 5"
-                      fill="none"
-                      stroke="#EF4444"
-                      strokeWidth="1.5"
-                      strokeDasharray="2 2"
-                    />
-                    {/* Policy (Replanting): Emisi Turun */}
-                    <path
-                      d="M 0 35 Q 30 30 50 25 T 100 30"
-                      fill="none"
-                      stroke="#10B981"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                </div>
-                <div className="flex justify-between items-center text-[9px] font-bold mt-2 border-t border-slate-100 pt-2">
-                  <span className="flex items-center gap-1 text-red-500">
-                    <div className="w-3 h-0.5 bg-red-500 border-dashed"></div>{" "}
-                    Tanpa Replanting (Naik)
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xs font-black text-emerald-950 uppercase tracking-widest flex items-center gap-2">
+                    <ThermometerSun size={14} className="text-purple-500" />{" "}
+                    Proyeksi Emisi Karbon
+                  </h2>
+                  <span className="text-[9px] text-slate-400 font-bold flex items-center gap-1">
+                    <MousePointer2 size={10} /> Sentuh Data
                   </span>
-                  <span className="flex items-center gap-1 text-emerald-600">
-                    <div className="w-3 h-1 bg-emerald-500"></div> Dengan
-                    Replanting (Turun)
+                </div>
+
+                {/* Wrapper Chart */}
+                <div className="h-48 w-full relative mt-4 mb-2">
+                  {/* Y Axis & Grid */}
+                  <div className="absolute inset-0 flex flex-col justify-between text-[9px] font-bold text-slate-400 pb-6">
+                    <div className="flex items-center w-full">
+                      <span className="w-8 mr-2">600</span>{" "}
+                      <div className="border-t border-slate-200 border-dashed flex-1"></div>
+                    </div>
+                    <div className="flex items-center w-full">
+                      <span className="w-8 mr-2">400</span>{" "}
+                      <div className="border-t border-slate-200 border-dashed flex-1"></div>
+                    </div>
+                    <div className="flex items-center w-full">
+                      <span className="w-8 mr-2">200</span>{" "}
+                      <div className="border-t border-slate-200 border-dashed flex-1"></div>
+                    </div>
+                    <div className="flex items-center w-full">
+                      <span className="w-8 mr-2">0</span>{" "}
+                      <div className="border-t border-slate-300 flex-1"></div>
+                    </div>
+                  </div>
+
+                  {/* Data SVG Line */}
+                  <div className="absolute inset-0 left-10 bottom-6 right-2 top-2 overflow-visible">
+                    <svg
+                      viewBox="0 0 100 100"
+                      className="w-full h-full overflow-visible preserve-aspect-ratio-none"
+                    >
+                      <path
+                        d={basePath}
+                        fill="none"
+                        stroke="#EF4444"
+                        strokeWidth="1.5"
+                        strokeDasharray="2 2"
+                        className="opacity-60"
+                      />
+                      <path
+                        d={policyPath}
+                        fill="none"
+                        stroke="#10B981"
+                        strokeWidth="2.5"
+                        className="drop-shadow-sm"
+                      />
+
+                      {/* Interactive Nodes */}
+                      {EMISSION_PROJECTION.map((d, i) => {
+                        const pBase = basePoints[i];
+                        const pPol = policyPoints[i];
+                        const isHovered = hoveredEmissionIdx === i;
+
+                        return (
+                          <g
+                            key={d.yr}
+                            className="cursor-pointer"
+                            onMouseEnter={() => setHoveredEmissionIdx(i)}
+                            onMouseLeave={() => setHoveredEmissionIdx(null)}
+                          >
+                            {/* Hover Catchment Area (Invisible) */}
+                            <rect
+                              x={pPol.x - 10}
+                              y="0"
+                              width="20"
+                              height="100"
+                              fill="transparent"
+                            />
+
+                            {/* Vertical Indicator Line on Hover */}
+                            {isHovered && (
+                              <line
+                                x1={pPol.x}
+                                y1="0"
+                                x2={pPol.x}
+                                y2="100"
+                                stroke="#CBD5E1"
+                                strokeWidth="0.5"
+                                strokeDasharray="1 1"
+                              />
+                            )}
+
+                            {/* Point Base */}
+                            <circle
+                              cx={pBase.x}
+                              cy={pBase.y}
+                              r={isHovered ? "2.5" : "1.5"}
+                              fill="#EF4444"
+                              className="transition-all"
+                            />
+                            {/* Point Policy */}
+                            <circle
+                              cx={pPol.x}
+                              cy={pPol.y}
+                              r={isHovered ? "3" : "2"}
+                              fill="#10B981"
+                              stroke="white"
+                              strokeWidth="0.5"
+                              className="transition-all"
+                            />
+
+                            {/* X-Axis Labels */}
+                            <text
+                              x={pPol.x}
+                              y="112"
+                              fontSize="6"
+                              fill={isHovered ? "#0F172A" : "#64748B"}
+                              fontWeight={isHovered ? "bold" : "normal"}
+                              textAnchor="middle"
+                              className="transition-all"
+                            >
+                              {d.yr}
+                            </text>
+                          </g>
+                        );
+                      })}
+                    </svg>
+
+                    {/* HTML Tooltip Overlay (Absolute Positioned based on state) */}
+                    {hoveredEmissionIdx !== null && (
+                      <div
+                        className="absolute bg-slate-800 text-white text-[10px] p-2.5 rounded-lg shadow-xl z-50 min-w-[120px] pointer-events-none transition-transform transform -translate-x-1/2 -translate-y-full mt-[-10px]"
+                        style={{
+                          left: `${policyPoints[hoveredEmissionIdx].x}%`,
+                          top: `${Math.min(basePoints[hoveredEmissionIdx].y, policyPoints[hoveredEmissionIdx].y)}%`,
+                        }}
+                      >
+                        <div className="font-black border-b border-slate-600 pb-1 mb-1 text-center">
+                          Tahun {EMISSION_PROJECTION[hoveredEmissionIdx].yr}
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-red-400">Baseline:</span>{" "}
+                          <b>
+                            {EMISSION_PROJECTION[hoveredEmissionIdx].base} MtCO₂
+                          </b>
+                        </div>
+                        <div className="flex justify-between items-center mt-1">
+                          <span className="text-emerald-400">Policy:</span>{" "}
+                          <b>
+                            {EMISSION_PROJECTION[hoveredEmissionIdx].policy}{" "}
+                            MtCO₂
+                          </b>
+                        </div>
+                        {/* Tooltip Arrow */}
+                        <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-slate-800 rotate-45"></div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center text-[10px] font-bold mt-4 border-t border-slate-100 pt-3">
+                  <span className="flex items-center gap-1.5 text-red-600">
+                    <div className="w-4 h-0.5 bg-red-500 border-dashed"></div>{" "}
+                    Baseline (Tanpa Intervensi)
+                  </span>
+                  <span className="flex items-center gap-1.5 text-emerald-700">
+                    <div className="w-4 h-1.5 bg-emerald-500"></div> Replanting
+                    Policy
                   </span>
                 </div>
               </div>
@@ -692,9 +1017,9 @@ export default function Lingkungan() {
                       <span>ISPO Compliance</span>
                       <span className="text-emerald-400">78%</span>
                     </div>
-                    <div className="w-full bg-emerald-950 rounded-full h-1.5">
+                    <div className="w-full bg-emerald-950 rounded-full h-2">
                       <div
-                        className="bg-emerald-400 h-1.5 rounded-full"
+                        className="bg-emerald-400 h-2 rounded-full"
                         style={{ width: "78%" }}
                       ></div>
                     </div>
@@ -704,9 +1029,9 @@ export default function Lingkungan() {
                       <span>RSPO Compliance</span>
                       <span className="text-amber-400">62%</span>
                     </div>
-                    <div className="w-full bg-emerald-950 rounded-full h-1.5">
+                    <div className="w-full bg-emerald-950 rounded-full h-2">
                       <div
-                        className="bg-amber-400 h-1.5 rounded-full"
+                        className="bg-amber-400 h-2 rounded-full"
                         style={{ width: "62%" }}
                       ></div>
                     </div>
@@ -716,24 +1041,24 @@ export default function Lingkungan() {
                       <span>Traceability (Lacak Balak)</span>
                       <span className="text-red-400">55%</span>
                     </div>
-                    <div className="w-full bg-emerald-950 rounded-full h-1.5">
+                    <div className="w-full bg-emerald-950 rounded-full h-2">
                       <div
-                        className="bg-red-400 h-1.5 rounded-full"
+                        className="bg-red-400 h-2 rounded-full"
                         style={{ width: "55%" }}
                       ></div>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-4 p-2.5 bg-amber-500/20 border border-amber-500/30 rounded-lg flex items-start gap-2">
+                <div className="mt-4 p-3 bg-amber-500/20 border border-amber-500/30 rounded-lg flex items-start gap-2">
                   <AlertTriangle
-                    size={14}
+                    size={16}
                     className="text-amber-400 flex-shrink-0 mt-0.5"
                   />
-                  <p className="text-[9px] text-amber-200 leading-tight">
+                  <p className="text-[10px] text-amber-200 leading-tight">
                     <b>Global Warning:</b> 45% produksi belum terverifikasi
-                    asal-usulnya. Berisiko terkena sanksi blokir EUDR (European
-                    Union Deforestation Regulation).
+                    asal-usulnya. Berisiko terkena sanksi blokir regulasi
+                    deforestasi Eropa (EUDR).
                   </p>
                 </div>
               </div>
@@ -783,25 +1108,18 @@ export default function Lingkungan() {
                         className="text-emerald-500 flex-shrink-0 mt-0.5"
                       />
                       <p className="text-[10px] text-slate-600 font-bold">
-                        Bekukan (moratorium) izin baru di area rawan deforestasi
-                        merah.
-                      </p>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <CheckCircle2
-                        size={12}
-                        className="text-emerald-500 flex-shrink-0 mt-0.5"
-                      />
-                      <p className="text-[10px] text-slate-600 font-bold">
-                        Tingkatkan monitoring kewajiban ISPO berbasis satelit
-                        real-time.
+                        Bekukan izin baru di area rawan deforestasi Kalimantan.
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <button className="w-full mt-5 py-3 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black rounded-xl transition-all flex justify-center items-center gap-2 uppercase tracking-widest shadow-md">
-                  Simulasikan Kebijakan Lingkungan <ArrowRight size={14} />
+                <button className="w-full mt-5 py-3 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black rounded-xl transition-all flex justify-center items-center gap-2 uppercase tracking-widest shadow-md group">
+                  Simulasikan Kebijakan{" "}
+                  <ArrowRight
+                    size={14}
+                    className="group-hover:translate-x-1 transition-transform"
+                  />
                 </button>
               </div>
             </div>
