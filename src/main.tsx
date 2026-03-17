@@ -1,14 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App.tsx";
 import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import NotFound from "./Pages/NotFound.tsx";
-import Cbi from "./Pages/cbi.tsx";
-import Perilaku from "./Pages/Perilaku.tsx";
-import Analysis from "./Pages/analysis.tsx";
-import Leaderboard from "./Pages/leaderboard.tsx";
-import Challenge from "./Pages/Challenge.tsx";
+import App from "./App";
+import Spasial from "./Pages/spasial";
+import Alokasi from "./Pages/Alokasi";
 
 const router = createBrowserRouter([
   {
@@ -16,30 +12,13 @@ const router = createBrowserRouter([
     element: <App />,
   },
   {
-    path: "/map",
-    element: <Perilaku />,
-  },
-
-  {
-    path: "/cbi",
-    element: <Cbi />,
+    path: "/spasial",
+    element: <Spasial />,
   },
   {
-    path: "/analysis",
-    element: <Analysis />,
-  },
-  {
-    path: "/leaderboard",
-    element: <Leaderboard />,
-  },
-  {
-    path: "/challenge",
-    element: <Challenge />,
-  },
-  {
-    path: "*",
-    element: <NotFound />,
-  },
+    path: "/alokasi",
+    element: <Alokasi />,
+  }
 ]);
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>

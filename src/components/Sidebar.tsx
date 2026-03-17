@@ -1,114 +1,110 @@
-import { NavLink } from "react-router-dom";
+import React from "react";
 import {
-  BarChart3,
-  Map,
+  LayoutDashboard,
+  Map as MapIcon,
+  GitMerge,
+  Sliders,
+  ShieldAlert,
+  FileText,
   Activity,
-  PieChart,
-  Award,
-  Target,
-  // Lightbulb,
-  // Download,
   Leaf,
+  Clock,
+  Database,
+  LineChart as ChartIcon,
 } from "lucide-react";
-import { LucideIcon } from "lucide-react";
-
-type MenuItem = {
-  id: string;
+import { NavLink } from "react-router-dom";
+type NavItemProps = {
+  icon: React.ReactElement;
   label: string;
-  icon: LucideIcon;
-  path: string;
+  to: string;
 };
 
-const menuItems: MenuItem[] = [
-  { id: "overview", label: "Overview Nasional", icon: BarChart3, path: "/" },
-  { id: "map", label: "Peta Perilaku Karbon", icon: Map, path: "/map" },
-  {
-    id: "cbi",
-    label: "Climate Behavioral Index",
-    icon: Activity,
-    path: "/cbi",
-  },
-  {
-    id: "analysis",
-    label: "Analisis Aktivitas",
-    icon: PieChart,
-    path: "/analysis",
-  },
-  {
-    id: "leaderboard",
-    label: "Leaderboard Komunitas",
-    icon: Award,
-    path: "/leaderboard",
-  },
-  {
-    id: "challenge",
-    label: "Monitoring Challenge",
-    icon: Target,
-    path: "/challenge",
-  },
-  // {
-  //   id: "insight",
-  //   label: "Insight & Rekomendasi AI",
-  //   icon: Lightbulb,
-  //   path: "/insight",
-  // },
-  // {
-  //   id: "export",
-  //   label: "Data Export & Laporan",
-  //   icon: Download,
-  //   path: "/export",
-  // },
-];
-
-type SidebarProps = {
-  isOpen: boolean;
-};
-
-export default function Sidebar({ isOpen }: SidebarProps) {
+function NavItem({ icon, label, to }: NavItemProps) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
+          isActive
+            ? "bg-white/10 text-white font-semibold shadow-inner"
+            : "text-emerald-100 hover:bg-white/5 hover:text-white"
+        }`
+      }
+    >
+      {React.cloneElement(icon, { className: "w-5 h-5" })}
+      <span className="text-sm">{label}</span>
+    </NavLink>
+  );
+}
+export default function Sidebar() {
   return (
     <aside
-      className={`bg-white border-r text-nowrap border-slate-200 transition-all duration-300 flex flex-col ${
-        isOpen ? "w-64" : "w-20"
-      } flex md:flex`}
+      className="w-64 flex flex-col shadow-2xl z-20"
+      style={{ backgroundColor: "#1F7A63" }}
     >
-      {/* Logo */}
-      <div className="p-6 flex items-center gap-3 border-b border-slate-100">
-        <div className="bg-emerald-500 p-2 rounded-lg">
-          <Leaf className="w-6 h-6 text-white" />
+      <div className="p-6 flex items-center space-x-3 text-white">
+        <Leaf className="w-8 h-8 text-yellow-400" />
+        <div>
+          <h1 className="text-xl font-bold tracking-wider leading-tight">
+            PALMSPHERE
+          </h1>
         </div>
-        {isOpen && (
-          <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-500">
-            GreenSpark
-          </span>
-        )}
       </div>
 
-      {/* Menu */}
-      <nav className="flex-1 overflow-y-auto py-4">
-        <ul className="space-y-1 px-3">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-
-            return (
-              <li key={item.id} className="text-nowrap">
-                <NavLink
-                  to={item.path}
-                  className={({ isActive }) =>
-                    `w-full flex items-center gap-3 px-3 text-nowrap py-3 rounded-xl transition-all ${
-                      isActive
-                        ? "bg-emerald-50 text-emerald-700 font-semibold"
-                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-                    }`
-                  }
-                >
-                  <Icon className="w-5 h-5" />
-                  {isOpen && <span className="text-nowrap">{item.label}</span>}
-                </NavLink>
-              </li>
-            );
-          })}
-        </ul>
+      <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
+        <NavItem to="/" icon={<LayoutDashboard />} label="Ringkasan Nasional" />
+        <NavItem to="/spasial" icon={<MapIcon />} label="Analisis Spasial" />
+        <NavItem to="/alokasi" icon={<GitMerge />} label="Alokasi & Logistik" />
+        <NavItem to="/simulasi" icon={<Sliders />} label="Simulasi Kebijakan" />
+        <NavItem
+          to="/prediksi"
+          icon={<ChartIcon />}
+          label="Prediksi & Proyeksi"
+        />
+        <NavItem
+          to="/monitoring"
+          icon={<ShieldAlert />}
+          label="Pemantauan Lingkungan"
+        />
+        <NavItem to="/laporan" icon={<FileText />} label="Laporan Kebijakan" />
       </nav>
+
+      <div className="p-4 border-t border-white/10 space-y-3 bg-black/10">
+        <div className="flex items-start space-x-3 text-white">
+          <Activity className="w-4 h-4 text-emerald-300 mt-0.5" />
+          <div>
+            <p className="text-[10px] text-emerald-200 uppercase tracking-wider">
+              Status Sinkronisasi
+            </p>
+            <p className="text-xs font-semibold flex items-center">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1.5"></span>
+              Real-time Active
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-start space-x-3 text-white/80">
+          <Clock className="w-4 h-4 mt-0.5 opacity-70" />
+          <div>
+            <p className="text-[10px] text-white/50 uppercase tracking-wider">
+              Update Terakhir
+            </p>
+            <p className="text-xs">15 menit yang lalu</p>
+          </div>
+        </div>
+
+        <div className="flex items-start space-x-3 text-white/80 pb-2">
+          <Database className="w-4 h-4 mt-0.5 opacity-70" />
+          <div>
+            <p className="text-[10px] text-white/50 uppercase tracking-wider">
+              Sumber Data Inti
+            </p>
+            <p className="text-[10px] leading-tight mt-0.5">
+              Kementan, KLHK, ESDM, Kemendag, BIG
+            </p>
+          </div>
+        </div>
+      </div>
     </aside>
   );
 }
