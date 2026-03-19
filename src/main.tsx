@@ -9,6 +9,7 @@ import Kebijakan from "./Pages/Kebijakan";
 import Prediksi from "./Pages/Prediksi";
 import Lingkungan from "./Pages/Lingkungan";
 import Laporan from "./Pages/Laporan";
+import Kebijakan3 from "./Pages/Kebijakan3";
 
 const router = createBrowserRouter([
   {
@@ -26,6 +27,10 @@ const router = createBrowserRouter([
   {
     path: "Kebijakan",
     element: <Kebijakan />,
+  },
+  {
+    path: "Kebijakan3",
+    element: <Kebijakan3 />,
   },
   {
     path: "/prediksi",

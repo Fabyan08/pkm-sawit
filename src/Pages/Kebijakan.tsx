@@ -41,6 +41,10 @@ import {
   LineChart,
   Factory,
   Map,
+  Sprout,
+  Trees,
+  Droplets,
+  Thermometer,
 } from "lucide-react";
 
 // Mencegah ReferenceError: tailwind is not defined
@@ -447,6 +451,17 @@ export default function Kebijakan() {
       delay,
     };
   }, [controls]);
+
+  // --- MODEL FISIOLOGIS TANAMAN ---
+  const fisiologis = useMemo(() => {
+    const nutrisi = controls.subsidi ? 88 : 62;
+    const stressLingkungan = Math.max(12, 45 - controls.replanting * 1.5);
+    const potensiYield =
+      3.2 + (controls.subsidi ? 0.6 : 0) + controls.replanting * 0.04;
+    const umurRataRata = Math.max(8, 16 - controls.replanting * 0.3);
+
+    return { nutrisi, stressLingkungan, potensiYield, umurRataRata };
+  }, [controls]);
   return (
     <div
       className="flex h-screen overflow-hidden font-sans"
@@ -458,11 +473,11 @@ export default function Kebijakan() {
       <main className="flex-1 flex flex-col overflow-y-auto h-screen overflow-hidden bg-slate-50/50 relative">
         {/* HEADER */}
         <Header />
-        <div className="min-h-screen bg-slate-100 text-blue-950 p-2 md:p-4 font-sans flex flex-col xl:flex-row gap-4">
+        <div className=" bg-slate-100 text-blue-950 p-2 md:p-4 font-sans flex flex-col xl:flex-row gap-4">
           {/* ========================================================= */}
           {/* PANEL KIRI: SCENARIO CONTROL PANEL (COMMAND BLUE THEME) */}
           {/* ========================================================= */}
-          <div className="w-full xl:w-[350px] flex-shrink-0 bg-blue-900 rounded-2xl shadow-xl border border-blue-800 flex flex-col overflow-hidden relative">
+          <div className="w-full xl:w-[350px] realtive flex-shrink-0 bg-blue-900 rounded-2xl shadow-xl border border-blue-800 flex flex-col overflow-hidden  z-10">
             {/* Header Control */}
             <div className="p-5 border-b border-blue-800 bg-blue-900/90 backdrop-blur z-10">
               <div className="flex items-center gap-3 mb-1">
@@ -744,6 +759,112 @@ export default function Kebijakan() {
               })}
             </div>
 
+            {/* --- KONDISI FISIOLOGIS SAWIT (DIPINDAHKAN KE ATAS AGAR LANGSUNG TERLIHAT) --- */}
+            <div className="bg-white rounded-2xl shadow-md border border-emerald-300 flex flex-col  relative">
+              <div className="p-5 border-b border-emerald-100 bg-emerald-50/80 ml-2">
+                <h2 className="text-base font-black text-emerald-950 flex items-center gap-2 uppercase tracking-wider">
+                  <Sprout size={20} className="text-emerald-600" /> Kondisi
+                  Fisiologis Tanaman Sawit
+                </h2>
+                <p className="text-xs text-emerald-700 font-medium mt-1">
+                  Status riil kesehatan tanaman berdasarkan tingkat subsidi
+                  pupuk dan laju replanting.
+                </p>
+              </div>
+
+              <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 ml-2">
+                {/* Metrik 1: Potensi Yield */}
+                <div className="bg-emerald-50/50 p-5 rounded-xl border border-emerald-100 flex flex-col justify-center">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">
+                      <Trees size={16} />
+                    </div>
+                    <span className="text-xs font-bold text-emerald-800 uppercase">
+                      Potensi Yield
+                    </span>
+                  </div>
+                  <p className="text-3xl font-black text-emerald-900">
+                    {fisiologis.potensiYield.toFixed(1)}{" "}
+                    <span className="text-[11px] font-bold text-emerald-600">
+                      Ton/Ha
+                    </span>
+                  </p>
+                  <div className="w-full bg-emerald-100 h-2 rounded-full mt-3 overflow-hidden">
+                    <div
+                      className="bg-emerald-500 h-full transition-all duration-700"
+                      style={{
+                        width: `${(fisiologis.potensiYield / 5) * 100}%`,
+                      }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Metrik 2: Nutrisi N-P-K */}
+                <div className="bg-blue-50/50 p-5 rounded-xl border border-blue-100 flex flex-col justify-center">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                      <Droplets size={16} />
+                    </div>
+                    <span className="text-xs font-bold text-blue-800 uppercase">
+                      Status Nutrisi N-P-K
+                    </span>
+                  </div>
+                  <p className="text-3xl font-black text-blue-900">
+                    {fisiologis.nutrisi}%
+                  </p>
+                  <div className="w-full bg-blue-100 h-2 rounded-full mt-3 overflow-hidden">
+                    <div
+                      className="bg-blue-500 h-full transition-all duration-700"
+                      style={{ width: `${fisiologis.nutrisi}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Metrik 3: Stres Lingkungan */}
+                <div className="bg-amber-50/50 p-5 rounded-xl border border-amber-100 flex flex-col justify-center">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
+                      <Thermometer size={16} />
+                    </div>
+                    <span className="text-xs font-bold text-amber-800 uppercase">
+                      Tingkat Stres (Cuaca)
+                    </span>
+                  </div>
+                  <p className="text-3xl font-black text-amber-900">
+                    {fisiologis.stressLingkungan.toFixed(1)}%
+                  </p>
+                  <div className="w-full bg-amber-100 h-2 rounded-full mt-3 overflow-hidden">
+                    <div
+                      className="bg-amber-500 h-full transition-all duration-700"
+                      style={{ width: `${fisiologis.stressLingkungan}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Metrik 4: Umur Rata-rata */}
+                <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 flex flex-col justify-center">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="p-2 bg-slate-200 rounded-lg text-slate-600">
+                      <Activity size={16} />
+                    </div>
+                    <span className="text-xs font-bold text-slate-800 uppercase">
+                      Rata-Rata Umur
+                    </span>
+                  </div>
+                  <p className="text-3xl font-black text-slate-900">
+                    {fisiologis.umurRataRata.toFixed(1)}{" "}
+                    <span className="text-[11px] font-bold text-slate-500">
+                      Tahun
+                    </span>
+                  </p>
+                  <p className="text-xs text-slate-600 font-bold mt-3 bg-white px-2 py-1 rounded border border-slate-200 inline-block text-center">
+                    {fisiologis.umurRataRata < 10
+                      ? "Profil: Tanaman Muda (TM1)"
+                      : "Profil: Tanaman Tua"}
+                  </p>
+                </div>
+              </div>
+            </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1">
               {/* KOLOM TENGAH: IMPACT & MAP */}
               <div className="lg:col-span-2 flex flex-col gap-4">
